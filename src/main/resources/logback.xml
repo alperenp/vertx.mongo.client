@@ -1,0 +1,16 @@
+<configuration>
+	<!-- configure console output -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%logger{40}:%line] - %msg%n</pattern>
+		</encoder>
+	</appender>
+	
+	<logger name="org" level="ERROR" />
+	<logger name="io.netty" level="ERROR" />
+	<logger name="io.vertx" level="ERROR" />
+	<root level="INFO">
+		<appender-ref ref="STDOUT" />
+	</root>
+	
+</configuration>
