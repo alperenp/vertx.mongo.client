@@ -1,12 +1,11 @@
 package com.sesamecare.alperenp.service;
 
-import static org.junit.Assert.assertFalse;
-
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -197,7 +196,7 @@ public class AppointmentServiceTest {
 					} else {
 						log.error("Insert single entry fail");
 					}
-					assertFalse(result.getBoolean("result"));
+					Assertions.assertTrue(result.getBoolean("result"));
 				} catch (DecodeException e) {
 					log.error("Insert test fail");
 				}
@@ -226,7 +225,7 @@ public class AppointmentServiceTest {
 				try {
 					JsonArray result = new JsonArray(body);
 					log.info("DB has {} entry/entries", result.size());
-					assertFalse(result.size() == 0);
+					Assertions.assertFalse(result.size() == 0);
 				} catch (DecodeException e) {
 					log.error("Get all appointments test");
 				}
@@ -259,14 +258,14 @@ public class AppointmentServiceTest {
 					} else {
 						log.error("Delete single entry fail. Entry may not exist in DB");
 					}
-					assertFalse(result.getBoolean("result"));
+					Assertions.assertTrue(result.getBoolean("result"));
 				} catch (DecodeException e) {
 					log.error("Delete test fail");
 				}
+				responsesReceived.flag();
 			} else {
 				log.error("Delete test fail");
 			}
-			responsesReceived.flag();
 		}));
 	}
 
@@ -300,14 +299,14 @@ public class AppointmentServiceTest {
 					} else {
 						log.error("Update single entry fail. Entry may not exist in DB");
 					}
-					assertFalse(result.getBoolean("result"));
+					Assertions.assertTrue(result.getBoolean("result"));
 				} catch (DecodeException e) {
 					log.error("Update test fail");
 				}
+				responsesReceived.flag();
 			} else {
 				log.error("Update test fail");
 			}
-			responsesReceived.flag();
 		}));
 	}
 
@@ -338,10 +337,10 @@ public class AppointmentServiceTest {
 				} catch (DecodeException e) {
 					log.error("Find test fail");
 				}
+				responsesReceived.flag();
 			} else {
 				log.error("Find test fail");
 			}
-			responsesReceived.flag();
 		}));
 	}
 
@@ -376,17 +375,17 @@ public class AppointmentServiceTest {
 					while (i.hasNext()) {
 						JsonObject entry = (JsonObject) i.next();
 						Appointment app = Json.decodeValue(entry.toBuffer(), Appointment.class);
-						assertFalse(app.getPrice() < previousPrice);
+						Assertions.assertFalse(app.getPrice() < previousPrice);
 						previousPrice = app.getPrice();
 						log.info(entry.toString());
 					}
 				} catch (DecodeException e) {
 					log.error("Find test fail");
 				}
+				responsesReceived.flag();
 			} else {
 				log.error("Find test fail");
 			}
-			responsesReceived.flag();
 		}));
 	}
 }
