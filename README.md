@@ -10,8 +10,8 @@ This repository contains example of a vertx service using vertx client and its t
 `mvn clean install -DskipTests` or if your machine has installation of mongo `mvn clean install`
 
 # Run
-Option 1
-1.  `docker-compose up
+Option 1 (start service and mongo instances)
+1.  `docker-compose up`
 
 Option 2
 1.  Configure config file (located under src/main/resources/config.json)
