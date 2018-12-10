@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AppointmentServiceTest {
 	String hostname = "localhost";
 	int port = 8080;
-
+	
 	/**
 	 * Deploys service and creates initial set of entries for each test case
 	 * 
@@ -44,26 +44,24 @@ public class AppointmentServiceTest {
 	 */
 	@BeforeEach
 	void initialize(Vertx vertx, VertxTestContext testContext) throws Throwable {
-		JsonObject serviceConf = new JsonObject().put("http.port", port).put("db_name", "DB_APP")
-				.put("mongo_collection", "appointments");
+		JsonObject serviceConf = new JsonObject().put("http.port", port).put("host", "127.0.0.1")
+				.put("db_name", "DB_APP").put("mongo_collection", "appointments");
 		DeploymentOptions options = new DeploymentOptions().setConfig(serviceConf).setInstances(1);
 		AppointmentService server = new AppointmentService();
+		List<Appointment> list = createEntries();
+		Checkpoint responsesReceived = testContext.checkpoint(list.size());
 		vertx.deployVerticle(server, options, ar -> {
 			log.info("Service deployed with id {}", ar.result());
-			initialEntries(vertx, testContext);
-			testContext.completeNow();
+			initialEntries(vertx, testContext, list, responsesReceived);
 		});
 	}
-
+	
 	/**
 	 * Defines initial set of entries to be used in tests
 	 * 
-	 * @param vertx
-	 * @param testContext
+	 * @return
 	 */
-	private void initialEntries(Vertx vertx, VertxTestContext testContext) {
-		log.info("");
-		log.info("---------------- add initial entries ----------------");
+	private List<Appointment> createEntries() {
 		long now = System.currentTimeMillis();
 		long oneweek = 604800000;
 		long oneHour = 3600000;
@@ -87,13 +85,26 @@ public class AppointmentServiceTest {
 		list.add(a5);
 		list.add(a6);
 		list.add(a7);
+		return list;
+	}
+	
+	/**
+	 * Inserts Entries to db using service
+	 * 
+	 * @param vertx
+	 * @param testContext
+	 * @param list
+	 */
+	private void initialEntries(Vertx vertx, VertxTestContext testContext, List<Appointment> list,
+			Checkpoint responsesReceived) {
+		log.info("");
+		log.info("---------------- add initial entries ----------------");
 		String url = "/rest/insertAppointment";
 		WebClient client = WebClient.create(vertx);
-		Checkpoint responsesReceived = testContext.checkpoint(list.size());
 		list.forEach(appointment -> insertRequest(client, url, new JsonObject(Json.encode(appointment)), testContext,
 				responsesReceived));
 	}
-
+	
 	/**
 	 * Removes all data existing in db through service
 	 * 
@@ -120,10 +131,9 @@ public class AppointmentServiceTest {
 					});
 				}));
 	}
-
+	
 	/**
-	 * Checks whether service is deployed properly and responds to REST end point
-	 * "/"
+	 * Checks whether service is deployed properly and responds to REST end point "/"
 	 * 
 	 * @param vertx
 	 * @param testContext
@@ -144,10 +154,9 @@ public class AppointmentServiceTest {
 			});
 		}));
 	}
-
+	
 	/**
-	 * Checks whether service is inserting new entries properly and responds to REST
-	 * end point "/rest/insertAppointment"
+	 * Checks whether service is inserting new entries properly and responds to REST end point "/rest/insertAppointment"
 	 * 
 	 * @param vertx
 	 * @param testContext
@@ -174,7 +183,7 @@ public class AppointmentServiceTest {
 		list.forEach(appointment -> insertRequest(client, url, new JsonObject(Json.encode(appointment)), testContext,
 				responsesReceived));
 	}
-
+	
 	/**
 	 * Common method for sending insert request
 	 * 
@@ -206,7 +215,7 @@ public class AppointmentServiceTest {
 			}
 		}));
 	}
-
+	
 	/**
 	 * Test for retrieving all entries exist in DB from service
 	 * 
@@ -233,7 +242,7 @@ public class AppointmentServiceTest {
 			});
 		}));
 	}
-
+	
 	/**
 	 * Test for removing single entry from DB using service
 	 * 
@@ -268,7 +277,7 @@ public class AppointmentServiceTest {
 			}
 		}));
 	}
-
+	
 	/**
 	 * Update Test for updating single entry from DB using service
 	 * 
@@ -309,7 +318,7 @@ public class AppointmentServiceTest {
 			}
 		}));
 	}
-
+	
 	/**
 	 * Test for finding specified entry in DB using service
 	 * 
@@ -333,7 +342,7 @@ public class AppointmentServiceTest {
 					} else {
 						log.info("Find single entry succeed. Entry: {}", result);
 					}
-
+					
 				} catch (DecodeException e) {
 					log.error("Find test fail");
 				}
@@ -343,12 +352,11 @@ public class AppointmentServiceTest {
 			}
 		}));
 	}
-
+	
 	/**
 	 * Test for finding entries with given criteria from DB using service
 	 * <p>
-	 * Criteria: entries from [previous month - next month] AND
-	 * {@link Appointment.Status#BOOKED}
+	 * Criteria: entries from [previous month - next month] AND {@link Appointment.Status#BOOKED}
 	 * <p>
 	 * Results are tested whether they are sorted in ascending order as well
 	 * 
@@ -362,7 +370,7 @@ public class AppointmentServiceTest {
 		Checkpoint responsesReceived = testContext.checkpoint();
 		String url = "/rest/findAppointmentsInRange";
 		WebClient client = WebClient.create(vertx);
-
+		
 		long now = System.currentTimeMillis();
 		long onemonth = 2592000000L;
 		JsonObject json = new JsonObject().put("start", now - onemonth).put("end", now + onemonth * 2);

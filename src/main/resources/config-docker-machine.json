@@ -1,7 +1,8 @@
 {
 	"http.port": 8080,
 
-	"host": "localhost",
+	"host": "mongodb",
+	"port": 27017,
 	"db_name": "DB_APP",
 	"mongo_collection": "appointments"
 }

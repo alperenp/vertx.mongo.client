@@ -1,3 +1,24 @@
+/**
+Copyright (c) 2018 alperenp
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ */
 package com.sesamecare.alperenp.service;
 
 import java.util.ArrayList;
@@ -31,12 +52,12 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class AppointmentService extends AbstractVerticle {
-
+	
 	/**
 	 * Router for specifying URLs of HTTP requests
 	 */
 	Router restAPI;
-
+	
 	/**
 	 * start method of service
 	 */
@@ -51,25 +72,24 @@ public class AppointmentService extends AbstractVerticle {
 				fut.fail(started.cause());
 			}
 		});
-
+		
 	}
-
+	
 	/**
-	 * Creates a router, creates an HTTP server with given router and given port
-	 * number read in config
+	 * Creates a router, creates an HTTP server with given router and given port number read in config
 	 */
 	private Future<HttpServer> startRestService(int port) {
 		// Create the HTTP server and pass the "accept" method to the request handler.
 		this.restAPI = configureRouter();
 		return createHttpServer(restAPI, port);
 	}
-
+	
 	/**
 	 * Create http server for the REST service.
 	 *
 	 * @param router router instance
-	 * @param host   http host
-	 * @param port   http port
+	 * @param host http host
+	 * @param port http port
 	 * @return async result of the procedure
 	 */
 	private Future<HttpServer> createHttpServer(@NonNull Router router, int port) {
@@ -85,50 +105,49 @@ public class AppointmentService extends AbstractVerticle {
 		});
 		return httpServerFuture;
 	}
-
+	
 	/**
 	 * Defines Rest end points of service
 	 * 
-	 * @see <a href=
-	 *      "https://vertx.io/blog/some-rest-with-vert-x/">vertx-rest-api</a>
+	 * @see <a href= "https://vertx.io/blog/some-rest-with-vert-x/">vertx-rest-api</a>
 	 * @return
 	 */
 	private Router configureRouter() {
 		// Create a router object.
 		restAPI = Router.router(vertx);
-
+		
 		// REST API for base web page
 		restAPI.get("/").handler(this::baseWebPage);
-
+		
 		// REST API to delete appointment
 		restAPI.route("/rest/deleteAppointment/*").handler(BodyHandler.create());
 		restAPI.delete("/rest/deleteAppointment").handler(this::deleteAppointment);
-
+		
 		// REST API to insert appointment
 		restAPI.route("/rest/insertAppointment/*").handler(BodyHandler.create());
 		restAPI.post("/rest/insertAppointment").handler(this::insertAppointment);
-
+		
 		// REST API to update appointment
 		restAPI.route("/rest/updateAppointment/*").handler(BodyHandler.create());
 		restAPI.put("/rest/updateAppointment").handler(this::updateAppointment);
-
+		
 		// REST API to get appointment
 		restAPI.route("/rest/findAppointment/*").handler(BodyHandler.create());
 		restAPI.get("/rest/findAppointment").handler(this::findAppointment);
-
+		
 		// REST API to get appointment
 		restAPI.route("/rest/findAppointmentsInRange/*").handler(BodyHandler.create());
 		restAPI.get("/rest/findAppointmentsInRange").handler(this::findAppointmentsWithRangeAndSort);
-
+		
 		// REST API to get all appointments
 		restAPI.get("/rest/allAppointments/").handler(this::getAllAppointments);
-
+		
 		// REST API to delete all appointments
 		restAPI.get("/rest/deleteAllAppointments/").handler(this::deleteAllAppointments);
-
+		
 		return restAPI;
 	}
-
+	
 	/**
 	 * Default Web Page
 	 * 
@@ -140,11 +159,11 @@ public class AppointmentService extends AbstractVerticle {
 		for (Route route : restAPI.getRoutes()) {
 			services.add(route.getPath());
 		}
-		String webPage = "<h1>Hello from Vert.x AppointmentService</h1>" + "<br>" + "<h2>Available services: "
-				+ services.toString() + "</h2>";
+		String webPage = "<h1>Hello from Vert.x AppointmentService</h1>" + "<br>" + "Owner: alperenp" + "<br>"
+				+ "<h3>Available services: " + services.toString() + "</h3>";
 		sendResponseToClient(routingContext, 200, "text/html", webPage);
 	}
-
+	
 	/**
 	 * Returns all existing entries in DB
 	 * 
@@ -163,14 +182,14 @@ public class AppointmentService extends AbstractVerticle {
 				jsonResult = future.result();
 			} else {
 				statuscode = 400;
-				log.error("Get All Appointments failed. Details: {}", future.cause());
+				log.error("Get All Appointments failed. Details: {}", future.cause().toString());
 			}
-
+			
 			// Output
 			sendResponseToClient(routingContext, statuscode, "application/json; charset=utf-8", jsonResult.toString());
 		});
 	}
-
+	
 	/**
 	 * Returns all existing entries in DB
 	 * 
@@ -189,14 +208,14 @@ public class AppointmentService extends AbstractVerticle {
 				jsonResult = future.result();
 			} else {
 				statuscode = 400;
-				log.error("Delete All Appointments failed. Details: {}", future.cause());
+				log.error("Delete All Appointments failed. Details: {}", future.cause().toString());
 			}
-
+			
 			// Output
 			sendResponseToClient(routingContext, statuscode, "application/json; charset=utf-8", jsonResult.toString());
 		});
 	}
-
+	
 	/**
 	 * Inserts new entry to DB sent from client.
 	 * <p>
@@ -208,13 +227,12 @@ public class AppointmentService extends AbstractVerticle {
 		// Input check
 		serviceCallMessage(routingContext);
 		JsonObject appointmentJson = routingContext.getBodyAsJson();
-		log.info("body received from server: {}", appointmentJson);
 		Optional<Appointment> appointment = decodeAppointment(appointmentJson);
 		if (!appointment.isPresent()) {
 			routingContext.response().setStatusCode(400).end();
 			return;
 		}
-
+		
 		// Main operation
 		AppointmentServiceController controller = new AppointmentServiceController(vertx, config());
 		Future<JsonObject> future = controller.insertAppointment(appointment.get());
@@ -226,11 +244,11 @@ public class AppointmentService extends AbstractVerticle {
 				sendResponseToClient(routingContext, 200, "application/json; charset=utf-8", jsonResult.toString());
 			} else {
 				sendResponseToClient(routingContext, 400, "application/json; charset=utf-8", jsonResult.toString());
-				log.error("Insert Appointment failed. Details: {}", future.cause());
+				log.error("Insert Appointment failed. Details: {}", future.cause().toString());
 			}
 		});
 	}
-
+	
 	/**
 	 * Removes Appointment with given identifier.
 	 * <p>
@@ -247,7 +265,7 @@ public class AppointmentService extends AbstractVerticle {
 			routingContext.response().setStatusCode(400).end();
 			return;
 		}
-
+		
 		// Main operation
 		AppointmentServiceController controller = new AppointmentServiceController(vertx, config());
 		Future<JsonObject> future = controller.deleteOne(json.getString("id"));
@@ -256,14 +274,14 @@ public class AppointmentService extends AbstractVerticle {
 			if (result.succeeded()) {
 				jsonResult = future.result();
 				sendResponseToClient(routingContext, 200, "application/json; charset=utf-8", jsonResult.toString());
-
+				
 			} else {
 				sendResponseToClient(routingContext, 400, "application/json; charset=utf-8", jsonResult.toString());
-				log.error("Delete Appointment failed. Details: {}", future.cause());
+				log.error("Delete Appointment failed. Details: {}", future.cause().toString());
 			}
 		});
 	}
-
+	
 	private void updateAppointment(RoutingContext routingContext) {
 		// Input check
 		serviceCallMessage(routingContext);
@@ -273,7 +291,7 @@ public class AppointmentService extends AbstractVerticle {
 			routingContext.response().setStatusCode(400).end();
 			return;
 		}
-
+		
 		// Main operation
 		AppointmentServiceController controller = new AppointmentServiceController(vertx, config());
 		Future<JsonObject> future = controller.replaceAppointment(appointment.get());
@@ -285,11 +303,11 @@ public class AppointmentService extends AbstractVerticle {
 				sendResponseToClient(routingContext, 200, "application/json; charset=utf-8", jsonResult.toString());
 			} else {
 				sendResponseToClient(routingContext, 400, "application/json; charset=utf-8", jsonResult.toString());
-				log.error("Insert Appointment failed. Details: {}", future.cause());
+				log.error("Insert Appointment failed. Details: {}", future.cause().toString());
 			}
 		});
 	}
-
+	
 	/**
 	 * Finds Appointment with given identifier.
 	 * <p>
@@ -306,7 +324,7 @@ public class AppointmentService extends AbstractVerticle {
 			routingContext.response().setStatusCode(400).end();
 			return;
 		}
-
+		
 		AppointmentServiceController controller = new AppointmentServiceController(vertx, config());
 		Future<List<JsonObject>> future = controller.findAppointment(json.getString("id"));
 		future.setHandler(result -> {
@@ -319,17 +337,16 @@ public class AppointmentService extends AbstractVerticle {
 					jsonResult.remove("_id");
 					sendResponseToClient(routingContext, 200, "application/json; charset=utf-8", jsonResult.toString());
 				}
-
+				
 			} else {
 				sendResponseToClient(routingContext, 400, "application/json; charset=utf-8", jsonResult.toString());
-				log.error("Find Appointment failed. Details: {}", future.cause());
+				log.error("Find Appointment failed. Details: {}", future.cause().toString());
 			}
 		});
 	}
-
+	
 	/**
-	 * Retrieve all appointments that are scheduled between a date range and sorted
-	 * by price.
+	 * Retrieve all appointments that are scheduled between a date range and sorted by price.
 	 * <p>
 	 * Returns true to client if successful removal, else returns false
 	 * 
@@ -344,7 +361,7 @@ public class AppointmentService extends AbstractVerticle {
 			routingContext.response().setStatusCode(400).end();
 			return;
 		}
-
+		
 		AppointmentServiceController controller = new AppointmentServiceController(vertx, config());
 		Future<List<JsonObject>> future = controller.findAppointmentsWithRangeAndSort(json.getLong("start"),
 				json.getLong("end"));
@@ -356,14 +373,14 @@ public class AppointmentService extends AbstractVerticle {
 				sendResponseToClient(routingContext, 200, "application/json; charset=utf-8", jsonResult.toString());
 			} else {
 				sendResponseToClient(routingContext, 400, "application/json; charset=utf-8", jsonResult.toString());
-				log.error("Find Appointments in range and sort failed. Details: {}", future.cause());
+				log.error("Find Appointments in range and sort failed. Details: {}", future.cause().toString());
 			}
 		});
-
+		
 	}
-
+	
 	/* ------ COMMON METHODS ------ */
-
+	
 	/**
 	 * De-serializes {@link JsonObject} into {@link Appointment} if possible
 	 * 
@@ -382,20 +399,17 @@ public class AppointmentService extends AbstractVerticle {
 		}
 		return Optional.ofNullable(appointment);
 	}
-
+	
 	/**
 	 * Generic method for putting header and end to {@link HttpServerResponse}
 	 * 
 	 * @param routingContext
-	 * @param statusCode     REST APIs use the Status-Line part of an HTTP response
-	 *                       message to inform clients of their request's
-	 *                       overarching result. RFC 2616 defines the Status-Line
-	 *                       syntax
+	 * @param statusCode REST APIs use the Status-Line part of an HTTP response message to inform clients of their
+	 *        request's overarching result. RFC 2616 defines the Status-Line syntax
 	 * 
-	 * @param contentType    determines content type (i.e text/html or
-	 *                       application/json; charset=utf-8)
+	 * @param contentType determines content type (i.e text/html or application/json; charset=utf-8)
 	 * 
-	 * @param endArg         parameter to be sent as body
+	 * @param endArg parameter to be sent as body
 	 */
 	private void sendResponseToClient(RoutingContext routingContext, int statusCode, String contentType,
 			String endArg) {
@@ -405,7 +419,7 @@ public class AppointmentService extends AbstractVerticle {
 		log.info("Response sended to {} for the query: {}", routingContext.request().remoteAddress().host(),
 				routingContext.currentRoute().getPath());
 	}
-
+	
 	/**
 	 * Indicator of a service call
 	 * 
@@ -415,7 +429,7 @@ public class AppointmentService extends AbstractVerticle {
 		log.info("Route: '{}' is called by host: '{}'", routingContext.currentRoute().getPath(),
 				routingContext.request().remoteAddress().host());
 	}
-
+	
 	/**
 	 * Main method to deploy this verticle and starts service on working host
 	 * 
@@ -423,11 +437,12 @@ public class AppointmentService extends AbstractVerticle {
 	 */
 	public static void main(String[] noargs) {
 		Vertx vertx = Vertx.vertx();
-		JsonObject serviceConf = new JsonObject().put("http.port", 8080).put("db_name", "DB_APP")
+		JsonObject serviceConf = new JsonObject().put("http.port", 8080)
+				.put("connection_string", "mongodb://mongodb:27017").put("db_name", "DB_APP")
 				.put("mongo_collection", "appointments");
 		DeploymentOptions options = new DeploymentOptions().setConfig(serviceConf).setInstances(1);
 		AppointmentService server = new AppointmentService();
 		vertx.deployVerticle(server, options);
 	}
-
+	
 }

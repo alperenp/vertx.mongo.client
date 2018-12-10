@@ -1,3 +1,24 @@
+/**
+Copyright (c) 2018 alperenp
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ */
 package com.sesamecare.alperenp.service;
 
 import java.util.Collections;
@@ -25,18 +46,18 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class AppointmentServiceController {
-
+	
 	private Vertx vertx;
-
+	
 	private JsonObject config;
-
+	
 	/**
 	 * Mongo collection name to be used insert/delete/update appointments
 	 * <p>
 	 * Default value is "appointments". See constructor
 	 */
 	private String COLLECTIONNAME;
-
+	
 	/**
 	 * Controller constructor
 	 * 
@@ -48,7 +69,7 @@ public class AppointmentServiceController {
 		this.config = config;
 		this.COLLECTIONNAME = config.getString("mongo_collection", "appointments");
 	}
-
+	
 	/**
 	 * 1- Deletes given {@link Appointment} (with respect to id) from mongo
 	 * 
@@ -63,7 +84,7 @@ public class AppointmentServiceController {
 		});
 		return future;
 	}
-
+	
 	/**
 	 * 2- Inserts given {@link Appointment} to mongo
 	 * 
@@ -79,7 +100,7 @@ public class AppointmentServiceController {
 		});
 		return future;
 	}
-
+	
 	/**
 	 * 3- Replaces given appointment with the one which already exists in mongo
 	 * <p>
@@ -98,7 +119,7 @@ public class AppointmentServiceController {
 				});
 		return future;
 	}
-
+	
 	/**
 	 * 4- Finds given {@link Appointment} (with respect to id) from mongo
 	 * 
@@ -110,10 +131,10 @@ public class AppointmentServiceController {
 		FindOptions options = new FindOptions();
 		return search(query, options);
 	}
-
+	
 	/**
-	 * 5- Finds given {@link Appointment} all appointments that are scheduled
-	 * between a date range and sorted by price (ascending).
+	 * 5- Finds given {@link Appointment} all appointments that are scheduled between a date range and sorted by price
+	 * (ascending).
 	 * 
 	 * @param start
 	 * @param end
@@ -124,7 +145,7 @@ public class AppointmentServiceController {
 		FindOptions options = ascendingPrice();
 		return search(query, options);
 	}
-
+	
 	/**
 	 * 6- Returns all {@link Appointment}s those exist in mongo
 	 * 
@@ -137,7 +158,7 @@ public class AppointmentServiceController {
 		FindOptions options = new FindOptions();
 		return search(query, options);
 	}
-
+	
 	/**
 	 * 6- Deletes all {@link Appointment}s those exist in mongo
 	 * 
@@ -158,7 +179,7 @@ public class AppointmentServiceController {
 		});
 		return future;
 	}
-
+	
 	/**
 	 * Generic search/find method for mongo query with {@link FindOptions}
 	 * 
@@ -174,10 +195,9 @@ public class AppointmentServiceController {
 		});
 		return future;
 	}
-
+	
 	/**
-	 * After find/search, this method logs and prepares response to be sent to
-	 * client
+	 * After find/search, this method logs and prepares response to be sent to client
 	 * 
 	 * @param asyncResult
 	 * @param future
@@ -188,7 +208,7 @@ public class AppointmentServiceController {
 			future.fail("MongoClient failed to operate find operation!");
 		} else {
 			List<JsonObject> result = asyncResult.result();
-
+			
 			if (result == null) {
 				// No entry in db
 				log.info("No entry exist given query");
@@ -200,7 +220,7 @@ public class AppointmentServiceController {
 			}
 		}
 	}
-
+	
 	/**
 	 * After insertion, this method logs and prepares response to be sent to client
 	 * 
@@ -213,7 +233,7 @@ public class AppointmentServiceController {
 			future.fail("MongoClient failed to operate given operation!");
 		} else {
 			String result = asyncResult.result();
-
+			
 			// Used in response json object in order to respond to client whether their
 			// request successfully completed or not
 			String RESULT = "result";
@@ -230,7 +250,7 @@ public class AppointmentServiceController {
 			}
 		}
 	}
-
+	
 	/**
 	 * After update/delete, this method logs and prepares response to sent to client
 	 * 
@@ -243,7 +263,7 @@ public class AppointmentServiceController {
 			future.fail("MongoClient failed to operate given operation!");
 		} else {
 			JsonObject result = asyncResult.result();
-
+			
 			// Used in response json object in order to respond to client whether their
 			// request successfully completed or not
 			String RESULT = "result";
@@ -260,7 +280,7 @@ public class AppointmentServiceController {
 			}
 		}
 	}
-
+	
 	/**
 	 * Create query with respect to id
 	 * 
@@ -270,7 +290,7 @@ public class AppointmentServiceController {
 	private JsonObject createQueryWithID(String id) {
 		return new JsonObject().put("id", id);
 	}
-
+	
 	/**
 	 * Creates mongo query with respect to given range of appointmentDate.
 	 * <p>
@@ -289,10 +309,9 @@ public class AppointmentServiceController {
 		query.put("status", Appointment.Status.BOOKED.toString());
 		return query;
 	}
-
+	
 	/**
-	 * Creates {@link FindOptions} for mongo query in order to sort result with
-	 * respect to price
+	 * Creates {@link FindOptions} for mongo query in order to sort result with respect to price
 	 * 
 	 * @return
 	 */
